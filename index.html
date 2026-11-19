@@ -3,524 +3,505 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>Orman İmparatorluğu - Mobil Arcade Idle</title>
+<title>Orman İmparatorluğu</title>
 <style>
   * { box-sizing: border-box; user-select: none; -webkit-user-select: none; touch-action: none; }
   html, body {
     margin: 0; padding: 0; width: 100%; height: 100%;
-    overflow: hidden; background: #162618; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    color: #fff;
+    overflow: hidden; background: #142218; font-family: sans-serif; color: #fff;
   }
-  canvas { display: block; width: 100%; height: 100%; }
-
-  /* Üst HUD */
+  #game {
+    position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; z-index: 1;
+  }
   #hud {
-    position: fixed; top: 12px; left: 12px; right: 12px;
-    display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: flex-start;
-    pointer-events: none; z-index: 10;
-  }
-  .hud-group { display: flex; flex-wrap: wrap; gap: 8px; pointer-events: none; }
-  .pill {
-    pointer-events: auto;
-    background: rgba(18, 28, 20, 0.84);
-    backdrop-filter: blur(8px);
-    border: 1.5px solid rgba(255, 220, 120, 0.28);
-    border-radius: 14px;
-    padding: 8px 12px;
-    display: flex; align-items: center; gap: 7px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.35);
-    font-weight: 700; font-size: 14px;
-  }
-  .pill .sub { font-size: 11px; opacity: 0.75; font-weight: 500; }
-  .btn-icon {
-    pointer-events: auto;
-    background: rgba(24, 38, 26, 0.9);
-    border: 1.5px solid rgba(255,255,255,0.2);
-    color: #fff; border-radius: 12px; padding: 8px 11px;
-    font-size: 15px; font-weight: 700; cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  }
-  .btn-icon:active { transform: scale(0.95); }
-
-  /* Alt aksiyon / market butonu */
-  #bottom-bar {
-    position: fixed; bottom: 18px; right: 18px;
-    display: flex; flex-direction: column; gap: 10px; align-items: flex-end;
+    position: fixed; top: 10px; left: 10px; right: 10px;
+    display: flex; flex-wrap: wrap; gap: 6px; justify-content: space-between;
     z-index: 10; pointer-events: none;
   }
-  #shop-btn {
-    pointer-events: auto;
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    border: 2px solid #fde68a;
-    color: #1a1204; font-weight: 900; font-size: 16px;
-    padding: 13px 20px; border-radius: 18px; cursor: pointer;
-    box-shadow: 0 8px 24px rgba(245, 158, 11, 0.45);
-    display: flex; align-items: center; gap: 8px;
+  .hud-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pill {
+    pointer-events: auto; background: rgba(15, 23, 18, 0.88);
+    border: 1px solid rgba(250, 204, 21, 0.35); border-radius: 12px;
+    padding: 7px 10px; font-weight: 700; font-size: 13px;
   }
-  #shop-btn:active { transform: scale(0.96); }
-  .badge {
-    background: #ef4444; color: #fff; font-size: 11px;
-    padding: 2px 7px; border-radius: 999px; font-weight: 800;
+  .btn-sm {
+    pointer-events: auto; background: rgba(20, 32, 24, 0.92);
+    border: 1px solid rgba(255,255,255,0.22); color: #fff;
+    border-radius: 11px; padding: 7px 10px; font-size: 14px; font-weight: 700;
   }
-
-  /* Sanal Joystick */
   #joy-zone {
-    position: fixed; left: 20px; bottom: 20px;
-    width: 130px; height: 130px; border-radius: 50%;
-    background: rgba(255,255,255,0.08);
-    border: 2px solid rgba(255,255,255,0.2);
-    z-index: 9; display: flex; align-items: center; justify-content: center;
+    position: fixed; left: 18px; bottom: 18px; width: 124px; height: 124px;
+    border-radius: 50%; background: rgba(255,255,255,0.1);
+    border: 2px solid rgba(255,255,255,0.25); z-index: 10;
+    display: flex; align-items: center; justify-content: center;
   }
   #joy-knob {
-    width: 54px; height: 54px; border-radius: 50%;
+    width: 52px; height: 52px; border-radius: 50%;
     background: radial-gradient(circle at 35% 35%, #fef08a, #f59e0b);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.45);
-    transform: translate(0px, 0px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
   }
-
-  /* Üs Pusulası */
-  #compass {
-    position: fixed; top: 74px; left: 50%; transform: translateX(-50%);
-    background: rgba(15, 23, 42, 0.82); border: 1px solid rgba(255,255,255,0.2);
-    padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: 700;
-    display: none; align-items: center; gap: 6px; z-index: 10; pointer-events: none;
+  #shop-btn {
+    position: fixed; right: 18px; bottom: 20px; z-index: 10;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    border: 2px solid #fde68a; color: #1a1204; font-weight: 900; font-size: 15px;
+    padding: 12px 18px; border-radius: 16px; box-shadow: 0 6px 20px rgba(0,0,0,0.4);
   }
-
-  /* Market Modal */
-  #shop-modal {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.72);
-    backdrop-filter: blur(6px); z-index: 30;
-    display: none; align-items: center; justify-content: center; padding: 14px;
+  #modal {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 30;
+    display: none; align-items: center; justify-content: center; padding: 12px;
     touch-action: auto;
   }
-  #shop-modal.open { display: flex; }
-  .shop-card {
-    width: 100%; max-width: 560px; max-height: 86vh;
-    background: #1b281e; border: 2px solid rgba(250, 204, 21, 0.35);
-    border-radius: 22px; display: flex; flex-direction: column; overflow: hidden;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.65); touch-action: pan-y;
+  #modal.open { display: flex; }
+  .card {
+    width: 100%; max-width: 520px; max-height: 84vh; background: #1a281e;
+    border: 2px solid #facc15; border-radius: 18px; display: flex; flex-direction: column;
+    overflow: hidden; touch-action: pan-y;
   }
-  .shop-header {
-    padding: 14px 18px; background: rgba(0,0,0,0.25);
+  .card-head {
+    padding: 12px 16px; background: rgba(0,0,0,0.25);
     display: flex; justify-content: space-between; align-items: center;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
   }
-  .shop-header h2 { margin: 0; font-size: 18px; color: #fde047; }
-  .close-btn {
-    background: rgba(255,255,255,0.12); border: none; color: #fff;
-    width: 34px; height: 34px; border-radius: 10px; font-size: 18px; cursor: pointer;
+  .card-head h3 { margin: 0; font-size: 16px; color: #fde047; }
+  .x-btn {
+    background: rgba(255,255,255,0.15); border: none; color: #fff;
+    width: 32px; height: 32px; border-radius: 8px; font-size: 16px;
   }
-  .tabs {
-    display: flex; gap: 6px; padding: 10px 14px; background: rgba(0,0,0,0.18);
-    overflow-x: auto;
+  .tabs { display: flex; gap: 6px; padding: 8px 12px; background: rgba(0,0,0,0.18); }
+  .tab {
+    flex: 1; padding: 8px 6px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.06); color: #cbd5e1; font-weight: 700; font-size: 12px;
   }
-  .tab-btn {
-    flex: 1; min-width: 78px; padding: 9px 8px; border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.06);
-    color: #cbd5e1; font-weight: 700; font-size: 12px; cursor: pointer; white-space: nowrap;
-  }
-  .tab-btn.active {
-    background: #f59e0b; color: #181003; border-color: #fde68a;
-  }
-  .shop-body {
-    padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;
-    touch-action: pan-y;
-  }
-  .item-row {
+  .tab.active { background: #f59e0b; color: #181003; }
+  .list { padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+  .row {
     background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 15px; padding: 12px; display: flex; align-items: center; gap: 12px;
+    border-radius: 12px; padding: 10px; display: flex; align-items: center; gap: 10px;
   }
-  .item-icon {
-    width: 46px; height: 46px; border-radius: 13px;
-    background: rgba(0,0,0,0.32); display: flex; align-items: center; justify-content: center;
-    font-size: 24px; flex-shrink: 0;
+  .ico { font-size: 22px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.28); border-radius: 10px; }
+  .info { flex: 1; min-width: 0; }
+  .title { font-weight: 800; font-size: 13px; }
+  .desc { font-size: 11px; color: #cbd5e1; margin-top: 2px; }
+  .stat { font-size: 11px; color: #86efac; margin-top: 2px; font-weight: 700; }
+  .buy {
+    background: #16a34a; border: none; color: #fff; font-weight: 800;
+    font-size: 12px; padding: 9px 11px; border-radius: 10px;
   }
-  .item-info { flex: 1; min-width: 0; }
-  .item-title { font-weight: 800; font-size: 14px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-  .item-desc { font-size: 12px; color: #cbd5e1; margin-top: 2px; }
-  .item-stat { font-size: 11px; color: #86efac; margin-top: 3px; font-weight: 600; }
-  .buy-btn {
-    background: linear-gradient(135deg, #22c55e, #16a34a);
-    border: none; color: #fff; font-weight: 800; font-size: 12px;
-    padding: 10px 13px; border-radius: 12px; cursor: pointer; flex-shrink: 0;
-    box-shadow: 0 4px 12px rgba(34,197,94,0.3);
-  }
-  .buy-btn:disabled {
-    background: rgba(255,255,255,0.12); color: #94a3b8; box-shadow: none; cursor: not-allowed;
-  }
-  .owned-tag {
-    background: rgba(250, 204, 21, 0.2); color: #fde047; border: 1px solid rgba(250, 204, 21, 0.4);
-    padding: 7px 11px; border-radius: 10px; font-size: 11px; font-weight: 800; flex-shrink: 0;
-  }
-
-  /* Toast */
-  #toast {
-    position: fixed; top: 112px; left: 50%; transform: translateX(-50%);
-    background: rgba(15, 23, 42, 0.92); border: 1px solid #fde047;
-    color: #fef08a; padding: 8px 16px; border-radius: 999px; font-size: 13px; font-weight: 700;
-    z-index: 40; opacity: 0; transition: opacity 0.25s; pointer-events: none;
-  }
-  #toast.show { opacity: 1; }
+  .buy:disabled { background: rgba(255,255,255,0.12); color: #94a3b8; }
+  .own { background: rgba(250,204,21,0.2); color: #fde047; padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; }
 </style>
 </head>
 <body>
-
 <canvas id="game"></canvas>
 
 <div id="hud">
-  <div class="hud-group">
-    <div class="pill">🪙 <span id="gold-val">0</span></div>
-    <div class="pill">🪵 <span id="wood-val">0</span>/<span id="cap-val">15</span></div>
-    <div class="pill">🏪 <span id="stall-val">0</span>/<span id="stall-cap-val">45</span></div>
-    <div class="pill" id="zone-pill">🌲 <span class="sub" id="zone-val">Çam Ormanı</span></div>
+  <div class="hud-row">
+    <div class="pill">🪙 <span id="gold">0</span></div>
+    <div class="pill">🪵 <span id="wood">0</span>/<span id="bag">15</span></div>
+    <div class="pill">🏪 <span id="stall">0</span>/<span id="stallCap">45</span></div>
   </div>
-  <div class="hud-group">
-    <button class="btn-icon" id="home-btn" title="Üsse Dön">🏠</button>
-    <button class="btn-icon" id="sound-btn" title="Ses">🔊</button>
-    <button class="btn-icon" id="reset-btn" title="Sıfırla">🔄</button>
+  <div class="hud-row">
+    <button class="btn-sm" id="homeBtn">🏠</button>
+    <button class="btn-sm" id="resetBtn">🔄</button>
   </div>
 </div>
-
-<div id="compass">🧭 Üs: <span id="dist-val">0</span>m <span id="arrow-val">↑</span></div>
-<div id="toast"></div>
 
 <div id="joy-zone"><div id="joy-knob"></div></div>
+<button id="shop-btn">🛒 MARKET</button>
 
-<div id="bottom-bar">
-  <button id="shop-btn">🛒 MARKET <span class="badge" id="shop-badge">!</span></button>
-</div>
-
-<div id="shop-modal">
-  <div class="shop-card">
-    <div class="shop-header">
-      <h2>🪓 Orman İmparatorluğu Marketi</h2>
-      <button class="close-btn" id="close-shop">✕</button>
+<div id="modal">
+  <div class="card">
+    <div class="card-head">
+      <h3>🪓 Market</h3>
+      <button class="x-btn" id="closeBtn">✕</button>
     </div>
     <div class="tabs">
-      <button class="tab-btn active" data-tab="tools">Aletler</button>
-      <button class="tab-btn" data-tab="vehicles">Araçlar</button>
-      <button class="tab-btn" data-tab="upgrades">Geliştirme</button>
-      <button class="tab-btn" data-tab="workers">İşçiler</button>
+      <button class="tab active" data-t="tools">Aletler</button>
+      <button class="tab" data-t="vehicles">Araçlar</button>
+      <button class="tab" data-t="upgrades">Geliştir</button>
+      <button class="tab" data-t="workers">İşçiler</button>
     </div>
-    <div class="shop-body" id="shop-body"></div>
+    <div class="list" id="list"></div>
   </div>
 </div>
 
 <script>
-(() => {
-  if (!CanvasRenderingContext2D.prototype.roundRect) {
-    CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
-      r = Math.min(r || 0, w / 2, h / 2);
-      this.beginPath();
-      this.moveTo(x + r, y);
-      this.arcTo(x + w, y, x + w, y + h, r);
-      this.arcTo(x + w, y + h, x, y + h, r);
-      this.arcTo(x, y + h, x, y, r);
-      this.arcTo(x, y, x + w, y, r);
-      this.closePath();
-      return this;
-    };
-  }
+(function () {
+  var SAVE_KEY = "orman_imp_v2";
+  var canvas = document.getElementById("game");
+  var ctx = canvas.getContext("2d");
 
-  function showFatalError(err) {
-    try {
-      const box = document.createElement("div");
-      box.style.cssText = "position:fixed;inset:16px;z-index:9999;background:rgba(127,29,29,0.95);color:#fff;padding:16px;border-radius:12px;font-family:monospace;font-size:12px;overflow:auto;";
-      box.textContent = "Oyun başlatılırken hata oluştu:\n" + (err && err.stack ? err.stack : String(err));
-      document.body.appendChild(box);
-    } catch (_) {}
+  function resize() {
+    var w = window.innerWidth || document.documentElement.clientWidth || 360;
+    var h = window.innerHeight || document.documentElement.clientHeight || 640;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.floor(w * dpr);
+    canvas.height = Math.floor(h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    view.w = w;
+    view.h = h;
   }
+  var view = { w: 360, h: 640 };
+
+  var TOOLS = [
+    { id: 0, name: "Paslı El Baltası", icon: "🪓", cost: 0, power: 15, cd: 0.45, desc: "Başlangıç baltası." },
+    { id: 1, name: "Çelik Balta", icon: "⚒️", cost: 100, power: 32, cd: 0.34, desc: "Daha hızlı ve güçlü kesim." },
+    { id: 2, name: "Orman Baltası", icon: "🪓", cost: 400, power: 70, cd: 0.25, desc: "Kalın ağaçları kolayca keser." },
+    { id: 3, name: "Motorlu Testere", icon: "🪚", cost: 1400, power: 150, cd: 0.16, desc: "Seri kesim testeresi." },
+    { id: 4, name: "Lazer Kesici", icon: "⚡", cost: 5000, power: 360, cd: 0.10, desc: "Anında kesim gücü." }
+  ];
+
+  var VEHICLES = [
+    { id: 0, name: "Yaya", icon: "🥾", cost: 0, cap: 0, spd: 0, desc: "Temel taşıma." },
+    { id: 1, name: "El Arabası", icon: "🛒", cost: 600, cap: 35, spd: 25, desc: "+35 çanta ve +25 hız." },
+    { id: 2, name: "Yük Vagonu", icon: "🚃", cost: 2800, cap: 110, spd: 55, desc: "+110 çanta ve +55 hız." },
+    { id: 3, name: "Odun Kamyonu", icon: "🚚", cost: 12000, cap: 350, spd: 90, desc: "+350 çanta ve +90 hız." }
+  ];
+
+  var state = {
+    gold: 0, wood: 0, stallWood: 0,
+    toolId: 0, vehicleId: 0,
+    bagLvl: 0, spdLvl: 0, priceLvl: 0, stallLvl: 0,
+    workers: 0, cashier: false,
+    cut: {}
+  };
 
   try {
-    const SAVE_KEY = "orman_imparatorlugu_save_v1";
-    const canvas = document.getElementById("game");
-    const ctx = canvas.getContext("2d");
-
-    let W = canvas.width = Math.max(320, window.innerWidth || document.documentElement.clientWidth || 360);
-    let H = canvas.height = Math.max(480, window.innerHeight || document.documentElement.clientHeight || 640);
-    window.addEventListener("resize", () => {
-      W = canvas.width = Math.max(320, window.innerWidth || document.documentElement.clientWidth || 360);
-      H = canvas.height = Math.max(480, window.innerHeight || document.documentElement.clientHeight || 640);
-    });
-
-    let soundEnabled = true;
-    let audioCtx = null;
-    function playTone(freq, type = "sine", dur = 0.09, gainVal = 0.12) {
-      if (!soundEnabled) return;
-      try {
-        const AudioCtor = window.AudioContext || window.webkitAudioContext;
-        if (!AudioCtor) return;
-        if (!audioCtx) audioCtx = new AudioCtor();
-        if (audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + dur);
-      } catch (_) {}
-    }
-
-    const TOOLS = [
-      { id: 0, name: "Paslı El Baltası", icon: "🪓", cost: 0, power: 12, speed: 0.55, desc: "Başlangıç baltası. Yakın ağaçları keser." },
-      { id: 1, name: "Çelik Oduncu Baltası", icon: "⚒️", cost: 120, power: 26, speed: 0.42, desc: "Keskin çelik ağız, daha hızlı kesim." },
-      { id: 2, name: "Ağır Orman Baltası", icon: "🪓", cost: 450, power: 55, speed: 0.32, desc: "Kalın gövdeleri bile kolayca devirir." },
-      { id: 3, name: "Motorlu Testere", icon: "🪚", cost: 1600, power: 120, speed: 0.20, desc: "Yüksek devirli motorla hızla odun biçer." },
-      { id: 4, name: "Termal Kesici", icon: "🔥", cost: 5200, power: 260, speed: 0.15, desc: "Ağaçları kavurarak seri odun üretir." },
-      { id: 5, name: "Plazma Lazer", icon: "⚡", cost: 18000, power: 580, speed: 0.11, desc: "Enerji ışınıyla anında kesim yapar." },
-      { id: 6, name: "Kuantum Biçerdöver", icon: "🌌", cost: 55000, power: 1350, speed: 0.08, desc: "Derin orman kristallerini bile süpürür." }
-    ];
-
-    const VEHICLES = [
-      { id: 0, name: "Yaya (Araç Yok)", icon: "🥾", cost: 0, capBonus: 0, speedBonus: 0, desc: "Sadece sırt çantasıyla taşıma." },
-      { id: 1, name: "Ahşap El Arabası", icon: "🛒", cost: 850, capBonus: 35, speedBonus: 22, desc: "Uzak ağaçlardan odun taşımayı kolaylaştırır." },
-      { id: 2, name: "Ağır Yük Vagonu", icon: "🚃", cost: 3800, capBonus: 110, speedBonus: 48, desc: "Geniş kasasıyla yüklü odun taşır." },
-      { id: 3, name: "Odun Kamyoneti", icon: "🚚", cost: 16500, capBonus: 360, speedBonus: 82, desc: "Güçlü motoruyla derin ormana hızla gider." },
-      { id: 4, name: "Dev Tomruk Tırı", icon: "🚛", cost: 65000, capBonus: 1200, speedBonus: 120, desc: "İmparatorluk seviyesi devasa taşıma tırı." }
-    ];
-
-    const defaultState = () => ({
-      gold: 0,
-      wood: 0,
-      stallWood: 0,
-      toolId: 0,
-      vehicleId: 0,
-      bagLvl: 0,
-      speedLvl: 0,
-      priceLvl: 0,
-      stallLvl: 0,
-      critLvl: 0,
-      vipLvl: 0,
-      workers: 0,
-      workerSpeedLvl: 0,
-      workerCapLvl: 0,
-      hasCashier: false,
-      cutTrees: {}
-    });
-
-    let state = defaultState();
-
-    function loadGame() {
-      try {
-        if (!window.localStorage) return;
-        const raw = window.localStorage.getItem(SAVE_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          state = { ...defaultState(), ...parsed, cutTrees: parsed.cutTrees || {} };
+    if (window.localStorage) {
+      var saved = JSON.parse(window.localStorage.getItem(SAVE_KEY) || "null");
+      if (saved) {
+        for (var k in saved) {
+          if (Object.prototype.hasOwnProperty.call(saved, k) && saved[k] !== undefined) {
+            state[k] = saved[k];
+          }
         }
-      } catch (_) {}
-    }
-    function saveGame() {
-      try {
-        if (!window.localStorage) return;
-        window.localStorage.setItem(SAVE_KEY, JSON.stringify(state));
-      } catch (_) {}
-    }
-    loadGame();
-
-    function getMaxBag() {
-      const veh = VEHICLES[state.vehicleId] || VEHICLES[0];
-      return 15 + state.bagLvl * 10 + veh.capBonus;
-    }
-    function getMoveSpeed() {
-      const veh = VEHICLES[state.vehicleId] || VEHICLES[0];
-      return 190 + state.speedLvl * 20 + veh.speedBonus;
-    }
-    function getWoodPrice() {
-      return 10 + state.priceLvl * 6;
-    }
-    function getStallCap() {
-      return 45 + state.stallLvl * 35;
-    }
-    function getCritChance() {
-      return Math.min(0.65, state.critLvl * 0.08);
-    }
-    function getVipChance() {
-      return Math.min(0.55, 0.12 + state.vipLvl * 0.07);
-    }
-
-    const BASE = { x: 0, y: 0, stallX: 115, stallY: -25, dropX: 45, dropY: 65, cashX: 145, cashY: 55 };
-    const player = {
-      x: 0, y: 110, vx: 0, vy: 0,
-      facing: 1, swingTimer: 0, chopCooldown: 0,
-      hitFlash: 0
-    };
-    const cam = { x: player.x, y: player.y };
-
-    const CHUNK_SIZE = 520;
-    const chunks = new Map();
-
-    function hash2(a, b) {
-      let n = Math.sin(a * 127.1 + b * 311.7) * 43758.5453123;
-      return n - Math.floor(n);
-    }
-
-    function getZoneInfo(dist) {
-      if (dist < 420) return { name: "Çam Ormanı", mult: 1, color: "#2d6a4f", leaf: "#40916c" };
-      if (dist < 950) return { name: "Meşe Korusu", mult: 2, color: "#2b593f", leaf: "#74c69d" };
-      if (dist < 1650) return { name: "Altın Ağaçlık", mult: 5, color: "#3d4c24", leaf: "#eab308" };
-      return { name: "Kristal Vadisi", mult: 14, color: "#1e3a4c", leaf: "#38bdf8" };
-    }
-
-    function getChunk(cx, cy) {
-      const key = `${cx},${cy}`;
-      if (chunks.has(key)) return chunks.get(key);
-
-      const trees = [];
-      const count = 11;
-      for (let i = 0; i < count; i++) {
-        const r1 = hash2(cx * 31 + i, cy * 17 + 3);
-        const r2 = hash2(cx * 13 + 7, cy * 41 + i);
-        const r3 = hash2(cx * 7 + i, cy * 23 + i);
-        const wx = cx * CHUNK_SIZE + (r1 - 0.5) * (CHUNK_SIZE - 80);
-        const wy = cy * CHUNK_SIZE + (r2 - 0.5) * (CHUNK_SIZE - 80);
-
-        const distFromBase = Math.hypot(wx - BASE.x, wy - BASE.y);
-        if (distFromBase < 210) continue;
-
-        const treeId = `${cx},${cy},${i}`;
-        const isCut = !!state.cutTrees[treeId];
-        const zone = getZoneInfo(distFromBase);
-        const isGoldTree = !isCut && r3 > 0.88;
-        const baseHp = (24 + Math.floor(distFromBase / 90) * 10) * (isGoldTree ? 1.5 : 1);
-        const yieldWood = zone.mult * (isGoldTree ? 2 : 1);
-
-        trees.push({
-          id: treeId,
-          x: wx, y: wy,
-          r: 22 + (r3 * 8),
-          hp: baseHp,
-          maxHp: baseHp,
-          cut: isCut,
-          yieldWood,
-          zone,
-          isGoldTree,
-          shake: 0
-        });
+        if (!state.cut) state.cut = {};
       }
+    }
+  } catch (e) {}
 
-      const chunkObj = { cx, cy, trees };
-      chunks.set(key, chunkObj);
-      return chunkObj;
+  function persist() {
+    try {
+      if (window.localStorage) window.localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+    } catch (e) {}
+  }
+
+  function maxBag() {
+    var v = VEHICLES[state.vehicleId] || VEHICLES[0];
+    return 15 + state.bagLvl * 10 + v.cap;
+  }
+  function moveSpd() {
+    var v = VEHICLES[state.vehicleId] || VEHICLES[0];
+    return 200 + state.spdLvl * 22 + v.spd;
+  }
+  function woodPrice() { return 12 + state.priceLvl * 7; }
+  function stallCap() { return 45 + state.stallLvl * 35; }
+
+  // Merkezde hemen görünen ağaçlar ve üs
+  var BASE = { x: 0, y: -40, stallX: 105, stallY: -70, dropX: 55, dropY: 15, cashX: 130, cashY: 15 };
+  var player = { x: 0, y: 20, facing: 1, cd: 0, swing: 0 };
+  var cam = { x: player.x, y: player.y };
+  var cashPile = 0;
+  var customers = [];
+  var custTimer = 0;
+  var popups = [];
+
+  var CHUNK = 480;
+  var chunks = {};
+
+  function rnd(a, b) {
+    var x = Math.sin(a * 91.7 + b * 233.3) * 43758.5453;
+    return x - Math.floor(x);
+  }
+
+  function getTreesNear() {
+    var minCx = Math.floor((cam.x - view.w) / CHUNK);
+    var maxCx = Math.floor((cam.x + view.w) / CHUNK);
+    var minCy = Math.floor((cam.y - view.h) / CHUNK);
+    var maxCy = Math.floor((cam.y + view.h) / CHUNK);
+    var out = [];
+    for (var cx = minCx; cx <= maxCx; cx++) {
+      for (var cy = minCy; cy <= maxCy; cy++) {
+        var key = cx + "," + cy;
+        if (!chunks[key]) {
+          var arr = [];
+          for (var i = 0; i < 12; i++) {
+            var tx = cx * CHUNK + (rnd(cx * 17 + i, cy * 29 + 3) - 0.5) * (CHUNK - 70);
+            var ty = cy * CHUNK + (rnd(cx * 11 + 5, cy * 37 + i) - 0.5) * (CHUNK - 70);
+            var dBase = Math.hypot(tx - BASE.x, ty - BASE.y);
+            if (dBase < 165) continue;
+            var id = cx + "," + cy + "," + i;
+            var mult = dBase < 450 ? 1 : (dBase < 950 ? 2 : 5);
+            var col = dBase < 450 ? "#4ade80" : (dBase < 950 ? "#facc15" : "#38bdf8");
+            arr.push({
+              id: id, x: tx, y: ty, r: 22,
+              hp: 25 + Math.floor(dBase / 80) * 12,
+              maxHp: 25 + Math.floor(dBase / 80) * 12,
+              cut: !!state.cut[id],
+              yld: mult, col: col
+            });
+          }
+          chunks[key] = arr;
+        }
+        var cTrees = chunks[key];
+        for (var j = 0; j < cTrees.length; j++) out.push(cTrees[j]);
+      }
+    }
+    return out;
+  }
+
+  // Başlangıçta oyuncunun hemen sağ/sol üstünde hazır 4 ağaç koyalım
+  var starterTrees = [
+    { id: "s1", x: -120, y: -20, r: 22, hp: 20, maxHp: 20, cut: !!state.cut["s1"], yld: 1, col: "#4ade80" },
+    { id: "s2", x: -95, y: 75, r: 22, hp: 20, maxHp: 20, cut: !!state.cut["s2"], yld: 1, col: "#4ade80" },
+    { id: "s3", x: 185, y: -90, r: 22, hp: 25, maxHp: 25, cut: !!state.cut["s3"], yld: 1, col: "#4ade80" },
+    { id: "s4", x: 195, y: 80, r: 22, hp: 25, maxHp: 25, cut: !!state.cut["s4"], yld: 1, col: "#4ade80" }
+  ];
+
+  function allTrees() {
+    var list = getTreesNear();
+    for (var i = 0; i < starterTrees.length; i++) {
+      starterTrees[i].cut = !!state.cut[starterTrees[i].id];
+      list.push(starterTrees[i]);
+    }
+    return list;
+  }
+
+  function addPop(x, y, txt, col) {
+    popups.push({ x: x, y: y, txt: txt, col: col || "#fde047", life: 1.0 });
+  }
+
+  // Joystick (Pointer + Touch fallback)
+  var joyZone = document.getElementById("joy-zone");
+  var joyKnob = document.getElementById("joy-knob");
+  var joyVec = { x: 0, y: 0 };
+  var dragging = false;
+  var center = { x: 80, y: 560 };
+
+  function updateJoy(clientX, clientY) {
+    var maxR = 40;
+    var dx = clientX - center.x;
+    var dy = clientY - center.y;
+    var dist = Math.hypot(dx, dy);
+    if (dist > maxR) {
+      dx = (dx / dist) * maxR;
+      dy = (dy / dist) * maxR;
+    }
+    joyKnob.style.transform = "translate(" + dx + "px," + dy + "px)";
+    joyVec.x = dist > 5 ? dx / maxR : 0;
+    joyVec.y = dist > 5 ? dy / maxR : 0;
+  }
+
+  function resetJoy() {
+    dragging = false;
+    joyKnob.style.transform = "translate(0px,0px)";
+    joyVec.x = 0;
+    joyVec.y = 0;
+  }
+
+  joyZone.addEventListener("touchstart", function (e) {
+    var rect = joyZone.getBoundingClientRect();
+    center.x = rect.left + rect.width / 2;
+    center.y = rect.top + rect.height / 2;
+    dragging = true;
+    if (e.touches && e.touches[0]) updateJoy(e.touches[0].clientX, e.touches[0].clientY);
+  }, { passive: true });
+
+  window.addEventListener("touchmove", function (e) {
+    if (!dragging || !e.touches || !e.touches[0]) return;
+    updateJoy(e.touches[0].clientX, e.touches[0].clientY);
+  }, { passive: true });
+
+  window.addEventListener("touchend", resetJoy, { passive: true });
+  window.addEventListener("touchcancel", resetJoy, { passive: true });
+
+  // Klavye desteği
+  var keys = {};
+  window.addEventListener("keydown", function (e) { keys[e.key.toLowerCase()] = true; });
+  window.addEventListener("keyup", function (e) { keys[e.key.toLowerCase()] = false; });
+
+  // Market
+  var modal = document.getElementById("modal");
+  var listEl = document.getElementById("list");
+  var tab = "tools";
+
+  document.getElementById("shop-btn").addEventListener("click", function () {
+    modal.className = "open";
+    renderShop();
+  });
+  document.getElementById("closeBtn").addEventListener("click", function () {
+    modal.className = "";
+  });
+
+  var tabBtns = document.querySelectorAll(".tab");
+  for (var b = 0; b < tabBtns.length; b++) {
+    tabBtns[b].addEventListener("click", function () {
+      for (var j = 0; j < tabBtns.length; j++) tabBtns[j].className = "tab";
+      this.className = "tab active";
+      tab = this.getAttribute("data-t");
+      renderShop();
+    });
+  }
+
+  function makeRow(ico, title, desc, stat, owned, canBuy, costText, onBuy) {
+    var div = document.createElement("div");
+    div.className = "row";
+    div.innerHTML =
+      "<div class='ico'>" + ico + "</div>" +
+      "<div class='info'><div class='title'>" + title + "</div><div class='desc'>" + desc + "</div><div class='stat'>" + stat + "</div></div>" +
+      (owned ? "<div class='own'>AKTİF</div>" : "<button class='buy'" + (canBuy ? "" : " disabled") + ">" + costText + "</button>");
+    var btn = div.querySelector(".buy");
+    if (btn && onBuy) btn.addEventListener("click", onBuy);
+    return div;
+  }
+
+  function renderShop() {
+    listEl.innerHTML = "";
+    if (tab === "tools") {
+      for (var i = 0; i < TOOLS.length; i++) {
+        (function (t) {
+          var owned = state.toolId >= t.id;
+          var canBuy = !owned && state.toolId === t.id - 1 && state.gold >= t.cost;
+          listEl.appendChild(makeRow(t.icon, t.name, t.desc, "Hasar: " + t.power, owned, canBuy, "🪙 " + t.cost, function () {
+            state.gold -= t.cost; state.toolId = t.id; persist(); renderShop();
+          }));
+        })(TOOLS[i]);
+      }
+    } else if (tab === "vehicles") {
+      for (var i = 0; i < VEHICLES.length; i++) {
+        (function (v) {
+          var owned = state.vehicleId >= v.id;
+          var canBuy = !owned && state.vehicleId === v.id - 1 && state.gold >= v.cost;
+          listEl.appendChild(makeRow(v.icon, v.name, v.desc, "+" + v.cap + " Kapasite", owned, canBuy, "🪙 " + v.cost, function () {
+            state.gold -= v.cost; state.vehicleId = v.id; persist(); renderShop();
+          }));
+        })(VEHICLES[i]);
+      }
+    } else if (tab === "upgrades") {
+      var bagCost = Math.round(70 * Math.pow(1.5, state.bagLvl));
+      listEl.appendChild(makeRow("🎒", "Çanta Kapasitesi", "Daha fazla odun taşı.", "Kapasite: " + maxBag(), false, state.gold >= bagCost, "🪙 " + bagCost, function () {
+        state.gold -= bagCost; state.bagLvl++; persist(); renderShop();
+      }));
+      var spdCost = Math.round(80 * Math.pow(1.5, state.spdLvl));
+      listEl.appendChild(makeRow("👟", "Koşu Hızı", "Daha hızlı yürü.", "Hız: " + moveSpd(), false, state.gold >= spdCost, "🪙 " + spdCost, function () {
+        state.gold -= spdCost; state.spdLvl++; persist(); renderShop();
+      }));
+      var prCost = Math.round(100 * Math.pow(1.55, state.priceLvl));
+      listEl.appendChild(makeRow("💰", "Odun Fiyatı", "Odun satış altınını artırır.", "Fiyat: " + woodPrice() + " 🪙", false, state.gold >= prCost, "🪙 " + prCost, function () {
+        state.gold -= prCost; state.priceLvl++; persist(); renderShop();
+      }));
+      var stCost = Math.round(120 * Math.pow(1.55, state.stallLvl));
+      listEl.appendChild(makeRow("🏪", "Tezgah Deposu", "Tezgah kapasitesini artırır.", "Tezgah: " + stallCap(), false, state.gold >= stCost, "🪙 " + stCost, function () {
+        state.gold -= stCost; state.stallLvl++; persist(); renderShop();
+      }));
+    } else if (tab === "workers") {
+      var wCost = Math.round(200 * Math.pow(1.8, state.workers));
+      listEl.appendChild(makeRow("👷", "İşçi Kirala (" + state.workers + "/6)", "Otomatik odun keser ve bırakır.", "Aktif: " + state.workers, state.workers >= 6, state.gold >= wCost, "🪙 " + wCost, function () {
+        state.gold -= wCost; state.workers++; persist(); renderShop();
+      }));
+      var cCost = 400;
+      listEl.appendChild(makeRow("🤵", "Kasiyer", "Kasaya gelen altınları otomatik toplar.", state.cashier ? "Aktif" : "Pasif", state.cashier, !state.cashier && state.gold >= cCost, "🪙 " + cCost, function () {
+        state.gold -= cCost; state.cashier = true; persist(); renderShop();
+      }));
+    }
+  }
+
+  document.getElementById("homeBtn").addEventListener("click", function () {
+    player.x = BASE.x;
+    player.y = BASE.y + 60;
+  });
+  document.getElementById("resetBtn").addEventListener("click", function () {
+    state = { gold: 0, wood: 0, stallWood: 0, toolId: 0, vehicleId: 0, bagLvl: 0, spdLvl: 0, priceLvl: 0, stallLvl: 0, workers: 0, cashier: false, cut: {} };
+    cashPile = 0;
+    customers = [];
+    player.x = 0; player.y = 20;
+    persist();
+  });
+
+  var workerBots = [];
+  function syncBots() {
+    while (workerBots.length < state.workers) {
+      workerBots.push({ x: BASE.x, y: BASE.y + 50, wood: 0, mode: "goTree", target: null });
+    }
+  }
+
+  var last = Date.now();
+  var saveAcc = 0;
+
+  function tick() {
+    var now = Date.now();
+    var dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+
+    var mx = joyVec.x;
+    var my = joyVec.y;
+    if (keys["a"] || keys["arrowleft"]) mx -= 1;
+    if (keys["d"] || keys["arrowright"]) mx += 1;
+    if (keys["w"] || keys["arrowup"]) my -= 1;
+    if (keys["s"] || keys["arrowdown"]) my += 1;
+
+    var len = Math.hypot(mx, my);
+    if (len > 0) {
+      mx /= len; my /= len;
+      if (Math.abs(mx) > 0.05) player.facing = mx > 0 ? 1 : -1;
     }
 
-    function getActiveTrees() {
-      const minCx = Math.floor((cam.x - W * 0.75) / CHUNK_SIZE);
-      const maxCx = Math.floor((cam.x + W * 0.75) / CHUNK_SIZE);
-      const minCy = Math.floor((cam.y - H * 0.75) / CHUNK_SIZE);
-      const maxCy = Math.floor((cam.y + H * 0.75) / CHUNK_SIZE);
-      const list = [];
-      for (let cx = minCx; cx <= maxCx; cx++) {
-        for (let cy = minCy; cy <= maxCy; cy++) {
-          const ch = getChunk(cx, cy);
-          for (const t of ch.trees) list.push(t);
+    player.x += mx * moveSpd() * dt;
+    player.y += my * moveSpd() * dt;
+    cam.x += (player.x - cam.x) * Math.min(1, dt * 8);
+    cam.y += (player.y - cam.y) * Math.min(1, dt * 8);
+
+    player.cd = Math.max(0, player.cd - dt);
+    player.swing = Math.max(0, player.swing - dt);
+
+    var trees = allTrees();
+    var tool = TOOLS[state.toolId] || TOOLS[0];
+
+    if (state.wood < maxBag() && player.cd <= 0) {
+      var near = null, best = 70;
+      for (var i = 0; i < trees.length; i++) {
+        var t = trees[i];
+        if (t.cut) continue;
+        var d = Math.hypot(t.x - player.x, t.y - player.y);
+        if (d < best) { best = d; near = t; }
+      }
+      if (near) {
+        player.cd = tool.cd;
+        player.swing = 0.15;
+        player.facing = near.x >= player.x ? 1 : -1;
+        near.hp -= tool.power;
+        if (near.hp <= 0) {
+          near.cut = true;
+          state.cut[near.id] = true;
+          var addW = Math.min(maxBag() - state.wood, near.yld);
+          state.wood += addW;
+          addPop(near.x, near.y - 24, "+" + addW + " 🪵", "#86efac");
         }
       }
-      return list;
     }
 
-    const customers = [];
-    let customerSpawnTimer = 0;
-    let cashPile = 0;
-
-    function spawnCustomer() {
-      if (customers.length >= 6 || state.stallWood <= 0) return;
-      const angle = Math.random() * Math.PI * 2;
-      const spawnDist = 680;
-      const isVip = Math.random() < getVipChance();
-      const want = Math.min(state.stallWood, isVip ? (4 + Math.floor(Math.random() * 6)) : (1 + Math.floor(Math.random() * 4)));
-      customers.push({
-        x: BASE.stallX + Math.cos(angle) * spawnDist,
-        y: BASE.stallY + Math.sin(angle) * spawnDist,
-        targetX: BASE.stallX - 20 + customers.length * 34,
-        targetY: BASE.stallY + 46,
-        want: Math.max(1, want),
-        isVip,
-        state: "walking",
-        waitTimer: 0
-      });
-    }
-
-    const workers = [];
-    function syncWorkers() {
-      while (workers.length < state.workers) {
-        const idx = workers.length;
-        workers.push({
-          x: BASE.x + (idx % 3 - 1) * 40,
-          y: BASE.y + 80,
-          wood: 0,
-          state: "findTree",
-          targetTree: null,
-          chopTimer: 0
-        });
-      }
-    }
-    syncWorkers();
-
-    const particles = [];
-    const popups = [];
-    function addPopup(x, y, text, color = "#fde047") {
-      popups.push({ x, y, text, color, life: 1.0 });
-    }
-    function addParticles(x, y, color, count = 8) {
-      for (let i = 0; i < count; i++) {
-        const a = Math.random() * Math.PI * 2;
-        const spd = 40 + Math.random() * 110;
-        particles.push({
-          x, y,
-          vx: Math.cos(a) * spd,
-          vy: Math.sin(a) * spd,
-          color,
-          life: 0.45 + Math.random() * 0.25,
-          size: 3 + Math.random() * 3
-        });
+    // Tezgaha odun bırakma
+    if (state.wood > 0 && state.stallWood < stallCap()) {
+      if (Math.hypot(player.x - BASE.dropX, player.y - BASE.dropY) < 65) {
+        var put = Math.min(state.wood, stallCap() - state.stallWood);
+        state.wood -= put;
+        state.stallWood += put;
+        addPop(BASE.dropX, BASE.dropY - 22, "+" + put + " Tezgah", "#fde047");
       }
     }
 
-    const keys = {};
-    window.addEventListener("keydown", (e) => { keys[e.key.toLowerCase()] = true; });
-    window.addEventListener("keyup", (e) => { keys[e.key.toLowerCase()] = false; });
-
-    const joyZone = document.getElementById("joy-zone");
-    const joyKnob = document.getElementById("joy-knob");
-    let joyActive = false, joyId = null, joyCenter = { x: 0, y: 0 };
-    const joyVec = { x: 0, y: 0 };
-
-    function setKnob(dx, dy) {
-      const maxR = 42;
-      const len = Math.hypot(dx, dy);
-      if (len > maxR) {
-        dx = (dx / len) * maxR;
-        dy = (dy / len) * maxR;
-      }
-      joyKnob.style.transform = `translate(${dx}px, ${dy}px)`;
-      joyVec.x = len > 4 ? dx / maxR : 0;
-      joyVec.y = len > 4 ? dy / maxR : 0;
+    // Kasa altın toplama
+    if (cashPile > 0 && (state.cashier || Math.hypot(player.x - BASE.cashX, player.y - BASE.cashY) < 62)) {
+      state.gold += cashPile;
+      addPop(BASE.cashX, BASE.cashY - 22, "+" + cashPile + " 🪙", "#facc15");
+      cashPile = 0;
     }
 
-    joyZone.addEventListener("pointerdown", (e) => {
-      joyActive = true;
-      joyId = e.pointerId;
-      const rect = joyZone.getBoundingClientRect();
-      joyCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-      setKnob(e.clientX - joyCenter.x, e.clientY - joyCenter.y);
-    });
-    window.addEventListener("pointermove", (e) => {
-      if (!joyActive || e.pointerId !== joyId) return;
-      setKnob(e.clientX - joyCenter.x, e.clientY - joyCenter.y);
-    });
-    function releaseJoy(e) {
-      if (joyActive && (!e || e.pointerId === joyId)) {
-        joyActive = false; joyId = null;
-        setKnob(0, 0);
-      }
-    }
-    window.addEventListener("pointerup", releaseJoy);
-    window.addEventListener("pointercancel", releaseJoy);
-
-    const shopModal = document.getElementById("shop-modal");
-    const shopBody = document.getElementById("shop-body"
+    // Müşteri
+    custTimer -= dt;
+    if (custTimer <= 0) {
+      custTimer = 2.0;
+      if (customers.length < 5 && state.stallWood > 0) {
+        customers.push({
+          x: BASE.stallX + (Math.random() - 0.5) * 260,
+          y: BASE.stallY + 260,
+          want: M
